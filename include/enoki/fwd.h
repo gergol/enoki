@@ -319,12 +319,16 @@ struct divisor;
 template <typename T>
 struct divisor_ext;
 
-/// Reinterpret the binary represesentation of a data type
 template<typename T, typename U> ENOKI_INLINE T memcpy_cast(const U &val) {
     static_assert(sizeof(T) == sizeof(U), "memcpy_cast: sizes did not match!");
-    T result;
-    std::memcpy(&result, &val, sizeof(T));
-    return result;
+    // TODO: This special case for bool was added by GG because of UBSan alarm.
+    if constexpr (std::is_same_v<T, bool>) {
+        return static_cast<bool>(val);
+    } else {
+        T result;
+        std::memcpy(&result, &val, sizeof(T));
+        return result;
+    }
 }
 
 NAMESPACE_END(enoki)
